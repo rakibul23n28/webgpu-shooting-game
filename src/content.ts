@@ -7,6 +7,7 @@ export class Content {
   public static ufoRedTexture: Texture;
   public static spreiteSheetTexture: Texture;
   public static backgroundTexture: Texture;
+  public static explosionTexture: Texture;
 
   public static sprites: { [id: string]: Sprite } = {};
   public static async initialize(device: GPUDevice): Promise<void> {
@@ -25,6 +26,10 @@ export class Content {
     Content.backgroundTexture = await Texture.createTextureFromURL(
       device,
       "Backgrounds/purple.png"
+    );
+    Content.explosionTexture = await Texture.createTextureFromURL(
+      device,
+      "Spritesheet/explosion.png"
     );
 
     await this.loadSpriteSheet();

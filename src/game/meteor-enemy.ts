@@ -4,6 +4,7 @@ import { Rect } from "../rect";
 import { SpriteRenderer } from "../sprite-renderer";
 import { Texture } from "../texture";
 import { Enemey } from "./enemy";
+import { CircleCollider } from "../circle-colider";
 
 const ENEMY_KEYS = [
   "meteorBrown_big1",
@@ -33,6 +34,8 @@ export class MeteorEnemy implements Enemey {
   private rotationOrigin = vec2.fromValues(0.5, 0.5);
   private rotationSpeed = 0;
 
+  public circleCollider: CircleCollider = new CircleCollider();
+
   private speed = 0;
   constructor(private gameWidht: number, private gameHeight: number) {
     const key = ENEMY_KEYS[Math.floor(Math.random() * ENEMY_KEYS.length)];
@@ -48,6 +51,8 @@ export class MeteorEnemy implements Enemey {
   update(dt: number): void {
     this.drawRect.y += this.speed * dt;
     this.rotation += this.rotationSpeed * dt;
+
+    this.circleCollider.update(this.drawRect);
   }
   draw(spriteRenderer: SpriteRenderer): void {
     spriteRenderer.drawSpriteSource(
