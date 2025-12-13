@@ -33,7 +33,7 @@ export class Content {
     const xmlDoc = perser.parseFromString(sheetXmlText, "text/xml");
 
     xmlDoc.querySelectorAll("SubTexture").forEach((subTexture) => {
-      const name = subTexture.getAttribute("name")!;
+      const name = subTexture.getAttribute("name")!.replace(".png", "");
       const x = parseInt(subTexture.getAttribute("x")!);
       const y = parseInt(subTexture.getAttribute("y")!);
       const width = parseInt(subTexture.getAttribute("width")!);
