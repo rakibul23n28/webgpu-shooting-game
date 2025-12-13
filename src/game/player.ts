@@ -21,8 +21,8 @@ export class Player {
     this.texture = playerSprite.texture;
     this.drawRect = playerSprite.drawRect.copy();
     this.sourceRect = playerSprite.sourceRect.copy();
-    // this.drawRect.width = this.drawRect.width * 0.9;
-    // this.drawRect.height = this.drawRect.height * 0.9;
+    this.drawRect.x = this.gameWidth / 2 - this.drawRect.width / 2;
+    this.drawRect.y = this.gameHeight - 100;
   }
 
   public clampToBounds() {
