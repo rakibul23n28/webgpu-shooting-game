@@ -1,6 +1,7 @@
 import { Content } from "./content";
 import { Rect } from "./rect";
 import { SpriteRenderer } from "./sprite-renderer";
+import { SoundManager } from "./sound-manager";
 
 const TIME_TO_NEXT_FRAME = 1000 / 30;
 export class Explosion {
@@ -27,6 +28,9 @@ export class Explosion {
     this.curretColumn = 0;
     this.currentRow = 0;
     this.drawRect = drawRect.copy();
+
+    // Play explosion sound
+    SoundManager.play("explosion", 0.6);
   }
 
   public update(dt: number) {

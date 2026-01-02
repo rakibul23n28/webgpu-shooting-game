@@ -4,15 +4,68 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WebGPU + TypeScript</title>
-    <style></style>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #gpu-canvas {
+        border: 1px solid #fff;
+        width: 600px;
+        height: 600px;
+        display: block;
+      }
+
+      button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+      }
+    </style>
   </head>
   <body>
-    <canvas
-      id="gpu-canvas"
-      style="border: 1px solid #fff"
-      width="600"
-      height="600"
-    ></canvas>
+    <canvas id="gpu-canvas" width="600" height="600"></canvas>
+    <button id="fullscreen-btn">Go Fullscreen</button>
+
     <script type="module" src="./src/main.ts"></script>
+    <script>
+      const canvas = document.getElementById("gpu-canvas");
+      const btn = document.getElementById("fullscreen-btn");
+
+      btn.addEventListener("click", () => {
+        if (canvas.requestFullscreen) {
+          canvas.requestFullscreen();
+        } else if (canvas.webkitRequestFullscreen) {
+          // Safari
+          canvas.webkitRequestFullscreen();
+        } else if (canvas.msRequestFullscreen) {
+          // IE11
+          canvas.msRequestFullscreen();
+        }
+      });
+
+      // Optional: resize canvas to match fullscreen
+      function resizeCanvas() {
+        if (document.fullscreenElement) {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+        } else {
+          canvas.width = 600;
+          canvas.height = 600;
+        }
+      }
+
+      document.addEventListener("fullscreenchange", resizeCanvas);
+      window.addEventListener("resize", resizeCanvas);
+    </script>
   </body>
 </html>

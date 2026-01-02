@@ -2,6 +2,7 @@ import { CircleCollider } from "./circle-colider";
 import { Content } from "./content";
 import { Player } from "./game/player";
 import { Rect } from "./rect";
+import { SoundManager } from "./sound-manager";
 import { SpriteRenderer } from "./sprite-renderer";
 import { Texture } from "./texture";
 
@@ -30,6 +31,9 @@ export class Bullet {
     this.drawRect.y = player.drawRect.y - this.drawRect.height;
 
     this.colider.update(this.drawRect); // important on spawn
+
+    // 🔊 Play laser sound
+    SoundManager.playFor("laser", 0.2, 0.05);
   }
 
   public update(dt: number) {

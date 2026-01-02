@@ -1,6 +1,7 @@
 import { vec2 } from "gl-matrix";
 import { Color } from "./Color";
 import { Content } from "./content";
+import { MusicContent } from "./music-content";
 import { Rect } from "./rect";
 import { SpriteRenderer } from "./sprite-renderer";
 import { InputManager } from "./input-manager";
@@ -40,6 +41,8 @@ export class Engine {
     this.device = await adapter.requestDevice();
     // Initialize content (load textures)
     await Content.initialize(this.device);
+    // Initialize music content (load sounds)
+    await MusicContent.initialize();
 
     this.context.configure({
       device: this.device,

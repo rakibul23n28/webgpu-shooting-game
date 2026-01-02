@@ -29,7 +29,7 @@ export class Player {
     private gameWidth: number,
     private gameHeight: number
   ) {
-    const playerSprite = Content.sprites["playerShip1_blue"];
+    const playerSprite = Content.sprites["playerShip2_green"];
 
     this.texture = playerSprite.texture;
     this.drawRect = playerSprite.drawRect.copy();
@@ -98,7 +98,7 @@ export class Player {
     }
 
     // ---- Right Mouse: Shrink + Speed Boost ----
-    if (this.inputManager.isRightMouseDown() && !this.isShrunk) {
+    if (this.inputManager.isLeftMouseDown() && !this.isShrunk) {
       this.isShrunk = true;
 
       this.drawRect.width = this.originalWidth * SHRINK_FACTOR;
@@ -109,7 +109,7 @@ export class Player {
       this.drawRect.y += this.originalHeight * (1 - SHRINK_FACTOR) * 0.5;
     }
 
-    if (this.inputManager.isRightMouseReleased() && this.isShrunk) {
+    if (this.inputManager.isLeftMouseReleased() && this.isShrunk) {
       this.isShrunk = false;
 
       this.drawRect.x -= this.originalWidth * (1 - SHRINK_FACTOR) * 0.5;
