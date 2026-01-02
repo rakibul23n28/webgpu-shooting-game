@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WebGPU + TypeScript</title>
+
     <style>
       html,
       body {
@@ -13,9 +14,13 @@
         height: 100%;
         background-color: #000;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
+        overflow: hidden;
+      }
+
+      #container {
+        position: relative;
       }
 
       #gpu-canvas {
@@ -25,35 +30,69 @@
         display: block;
       }
 
-      button {
-        margin-top: 20px;
-        padding: 10px 20px;
-        font-size: 16px;
+      /* Fullscreen icon */
+      #fullscreen-icon {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 36px;
+        height: 36px;
+        cursor: pointer;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, transform 0.1s;
+      }
+
+      #fullscreen-icon:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.1);
+      }
+
+      #fullscreen-icon svg {
+        width: 20px;
+        height: 20px;
+        stroke: white;
       }
     </style>
   </head>
-  <body>
-    <canvas id="gpu-canvas" width="600" height="600"></canvas>
-    <button id="fullscreen-btn">Go Fullscreen</button>
 
+  <body>
+    <div id="container">
+      <canvas id="gpu-canvas" width="600" height="600"></canvas>
+
+      <!-- Fullscreen Icon -->
+      <div id="fullscreen-icon" title="Fullscreen">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+          <path d="M16 3h3a2 2 0 0 1 2 2v3" />
+          <path d="M8 21H5a2 2 0 0 1-2-2v-3" />
+          <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Your WebGPU / TS entry -->
     <script type="module" src="./src/main.ts"></script>
+
     <script>
       const canvas = document.getElementById("gpu-canvas");
-      const btn = document.getElementById("fullscreen-btn");
+      const icon = document.getElementById("fullscreen-icon");
 
-      btn.addEventListener("click", () => {
-        if (canvas.requestFullscreen) {
-          canvas.requestFullscreen();
-        } else if (canvas.webkitRequestFullscreen) {
-          // Safari
-          canvas.webkitRequestFullscreen();
-        } else if (canvas.msRequestFullscreen) {
-          // IE11
-          canvas.msRequestFullscreen();
+      icon.addEventListener("click", () => {
+        if (!document.fullscreenElement) {
+          if (canvas.requestFullscreen) {
+            canvas.requestFullscreen();
+          } else if (canvas.webkitRequestFullscreen) {
+            canvas.webkitRequestFullscreen(); // Safari
+          }
+        } else {
+          document.exitFullscreen();
         }
       });
 
-      // Optional: resize canvas to match fullscreen
       function resizeCanvas() {
         if (document.fullscreenElement) {
           canvas.width = window.innerWidth;
