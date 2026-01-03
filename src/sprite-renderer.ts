@@ -5,6 +5,7 @@ import { Color } from "./Color";
 import { Rect } from "./rect";
 import { SpritePipeline } from "./spite-pipeline";
 import { Texture } from "./texture";
+import { SpriteFont } from "./sprite-font";
 
 const MAX_NUMBER_OF_SPRITES = 1000;
 const INDICES_PER_SPRITE = 6; // 2 triangles per sprite
@@ -272,6 +273,114 @@ export class SpriteRenderer {
         this.pipelinePerTexture[texture.id]
       );
       this.batchDrawCallsPerTexture[texture.id].push(newBatchDrawCall);
+    }
+  }
+
+  public drawString(
+    spriteFont: SpriteFont,
+    text: string,
+    position: vec2,
+    color: Color = this.defualtColor,
+    scale = 1
+  ) {
+    const texture = spriteFont.texture;
+
+    if (this.currentTexture != texture) {
+      this.currentTexture = texture;
+      let pipeline = this.pipelinePerTexture[texture.id];
+      if (!pipeline) {
+        pipeline = SpritePipeline.create(
+          this.device,
+          texture,
+          this.projectionViewMatrixBuffer
+        );
+        this.pipelinePerTexture[texture.id] = pipeline;
+      }
+
+      let batchDrawCalls = this.batchDrawCallsPerTexture[texture.id];
+      if (!batchDrawCalls) {
+        this.batchDrawCallsPerTexture[texture.id] = [];
+      }
+    }
+
+    const arrayOfBatchDrawCalls = this.batchDrawCallsPerTexture[texture.id];
+
+    let batchDrawCall = arrayOfBatchDrawCalls[arrayOfBatchDrawCalls.length - 1];
+    if (!batchDrawCall) {
+      batchDrawCall = new BatchDrawCall(this.pipelinePerTexture[texture.id]);
+      this.batchDrawCallsPerTexture[texture.id].push(batchDrawCall);
+    }
+
+    let advanceChar = 0;
+
+    for (let j = 0; j < text.length; j++) {
+      const charCode = text[j].charCodeAt(0);
+      const spriteFontChar = spriteFont.getChar(charCode);
+      if (!spriteFontChar) {
+        continue;
+      }
+      let i = batchDrawCall.instanceCount * FLOATS_PER_SPRITE;
+
+      const x = position[0] + (spriteFontChar.offset[0] + advanceChar) * scale;
+      const y = position[1] + spriteFontChar.offset[1] * scale;
+      const width = spriteFontChar.size[0] * scale;
+      const height = spriteFontChar.size[1] * scale;
+
+      //add rotation vector
+
+      this.v0[0] = x;
+      this.v0[1] = y;
+      this.v1[0] = x + width;
+      this.v1[1] = y;
+      this.v2[0] = x;
+      this.v2[1] = y + height;
+      this.v3[0] = x + width;
+      this.v3[1] = y + height;
+
+      const a = spriteFontChar.textureCoords.topLeft;
+      const b = spriteFontChar.textureCoords.topRight;
+      const c = spriteFontChar.textureCoords.bottomLeft;
+      const d = spriteFontChar.textureCoords.bottomRight;
+
+      batchDrawCall.vertexData[i + 0] = this.v0[0];
+      batchDrawCall.vertexData[i + 1] = this.v0[1];
+      batchDrawCall.vertexData[i + 2] = a[0];
+      batchDrawCall.vertexData[i + 3] = a[1];
+      batchDrawCall.vertexData[i + 4] = color.r;
+      batchDrawCall.vertexData[i + 5] = color.g;
+      batchDrawCall.vertexData[i + 6] = color.b; // vertex 0
+
+      batchDrawCall.vertexData[i + 7] = this.v1[0];
+      batchDrawCall.vertexData[i + 8] = this.v1[1];
+      batchDrawCall.vertexData[i + 9] = b[0];
+      batchDrawCall.vertexData[i + 10] = b[1];
+      batchDrawCall.vertexData[i + 11] = color.r;
+      batchDrawCall.vertexData[i + 12] = color.g;
+      batchDrawCall.vertexData[i + 13] = color.b; // vertex 1
+
+      batchDrawCall.vertexData[i + 14] = this.v2[0];
+      batchDrawCall.vertexData[i + 15] = this.v2[1];
+      batchDrawCall.vertexData[i + 16] = c[0];
+      batchDrawCall.vertexData[i + 17] = c[1];
+      batchDrawCall.vertexData[i + 18] = color.r;
+      batchDrawCall.vertexData[i + 19] = color.g;
+      batchDrawCall.vertexData[i + 20] = color.b; // vertex 2
+
+      batchDrawCall.vertexData[i + 21] = this.v3[0];
+      batchDrawCall.vertexData[i + 22] = this.v3[1];
+      batchDrawCall.vertexData[i + 23] = d[0];
+      batchDrawCall.vertexData[i + 24] = d[1];
+      batchDrawCall.vertexData[i + 25] = color.r;
+      batchDrawCall.vertexData[i + 26] = color.g;
+      batchDrawCall.vertexData[i + 27] = color.b; // vertex 3
+
+      advanceChar += spriteFontChar.advance;
+      batchDrawCall.instanceCount++;
+
+      if (batchDrawCall.instanceCount >= MAX_NUMBER_OF_SPRITES) {
+        batchDrawCall = new BatchDrawCall(this.pipelinePerTexture[texture.id]);
+        this.batchDrawCallsPerTexture[texture.id].push(batchDrawCall);
+      }
     }
   }
 

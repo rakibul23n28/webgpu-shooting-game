@@ -2,6 +2,7 @@ import { BulletManager } from "../bullet-manager";
 import { ExplosionManager } from "../explosion-manager";
 import { SpriteRenderer } from "../sprite-renderer";
 import { Enemey } from "./enemy";
+import { HighScore } from "./high-score";
 import { MeteorEnemy } from "./meteor-enemy";
 import { Player } from "./player";
 
@@ -16,7 +17,8 @@ export class EnemyManager {
     private gameHeight: number,
     private readonly player: Player,
     private readonly explosionManager: ExplosionManager,
-    private readonly bulletManager: BulletManager
+    private readonly bulletManager: BulletManager,
+    private readonly highScore: HighScore
   ) {}
 
   public spawnEnemy() {
@@ -58,6 +60,7 @@ export class EnemyManager {
           //TODO : create explosion
 
           this.explosionManager.create(enemy.drawRect);
+          this.highScore.currentScore++;
         }
 
         if (enemy.drawRect.y > this.gameHeight) {
