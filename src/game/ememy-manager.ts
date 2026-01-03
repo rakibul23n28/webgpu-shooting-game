@@ -1,5 +1,6 @@
 import { BulletManager } from "../bullet-manager";
 import { ExplosionManager } from "../explosion-manager";
+import { SoundManager } from "../sound-manager";
 import { SpriteRenderer } from "../sprite-renderer";
 import { Enemey } from "./enemy";
 import { HighScore } from "./high-score";
@@ -51,6 +52,7 @@ export class EnemyManager {
           //TODO : create explosion
 
           this.explosionManager.create(enemy.drawRect);
+          SoundManager.play("lose", 1);
         }
         //enemy bullet collision
 
@@ -60,6 +62,9 @@ export class EnemyManager {
           //TODO : create explosion
 
           this.explosionManager.create(enemy.drawRect);
+
+          // Play explosion sound
+          SoundManager.play("explosion", 0.6);
           this.highScore.currentScore++;
         }
 

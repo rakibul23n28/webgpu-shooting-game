@@ -11,6 +11,7 @@ export class MusicContent {
     SoundManager.load("explosion", "Bonus/sfx_shieldUp.ogg");
     SoundManager.load("laser", "Bonus/sfx_laser2.ogg");
     SoundManager.load("hit", "Bonus/sfx_hit.ogg");
+    SoundManager.load("lose", "Bonus/sfx_lose.ogg");
 
     // 🎵 Music
     SoundManager.load("bgm", "Music/background.ogg");
