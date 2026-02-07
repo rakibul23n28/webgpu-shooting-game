@@ -13,28 +13,33 @@ export class Content {
   public static explosionTexture: Texture;
 
   public static spriteFont: SpriteFont;
+  public static iceTexture: Texture;
 
   public static sprites: { [id: string]: Sprite } = {};
   public static async initialize(device: GPUDevice): Promise<void> {
     Content.playerTexture = await Texture.createTextureFromURL(
       device,
-      "PNG/playerShip1_blue.png"
+      "PNG/playerShip1_blue.png",
     );
     Content.ufoRedTexture = await Texture.createTextureFromURL(
       device,
-      "PNG/ufoRed.png"
+      "PNG/ufoRed.png",
     );
     Content.spreiteSheetTexture = await Texture.createTextureFromURL(
       device,
-      "Spritesheet/sheet.png"
+      "Spritesheet/sheet.png",
     );
     Content.backgroundTexture = await Texture.createTextureFromURL(
       device,
-      "Backgrounds/black.png"
+      "Backgrounds/black.png",
     );
     Content.explosionTexture = await Texture.createTextureFromURL(
       device,
-      "Spritesheet/explosion.png"
+      "Spritesheet/explosion.png",
+    );
+    Content.iceTexture = await Texture.createTextureFromURL(
+      device,
+      "PNG/blue_coal.png",
     );
 
     await this.loadSpriteSheet();
@@ -42,7 +47,7 @@ export class Content {
     Content.spriteFont = await this.loadSnowBSpriteFont(
       device,
       "Font/Unnamed.xml",
-      "Font/Unnamed.png"
+      "Font/Unnamed.png",
     );
   }
 
@@ -66,7 +71,7 @@ export class Content {
       this.sprites[name] = new Sprite(
         this.spreiteSheetTexture,
         drawRect,
-        sourceRect
+        sourceRect,
       );
     });
   }
@@ -74,7 +79,7 @@ export class Content {
   private static async loadSnowBSpriteFont(
     device: GPUDevice,
     xmlPath: string,
-    texturePath: string
+    texturePath: string,
   ): Promise<SpriteFont> {
     const texture = await Texture.createTextureFromURL(device, texturePath);
 
@@ -85,7 +90,7 @@ export class Content {
     const xmlDoc = perser.parseFromString(xmlText, "text/xml");
 
     const lineHeight = parseInt(
-      xmlDoc.querySelector("common")!.getAttribute("lineHeight")!
+      xmlDoc.querySelector("common")!.getAttribute("lineHeight")!,
     );
 
     const spriteFont = new SpriteFont(texture, lineHeight);
@@ -109,7 +114,7 @@ export class Content {
         vec2.fromValues(x1, y1),
         vec2.fromValues(x2, y1),
         vec2.fromValues(x1, y2),
-        vec2.fromValues(x2, y2)
+        vec2.fromValues(x2, y2),
       );
 
       spriteFont.createChar(
@@ -117,7 +122,7 @@ export class Content {
         quad,
         vec2.fromValues(width, height),
         xadvance,
-        vec2.fromValues(xoffset, yoffset)
+        vec2.fromValues(xoffset, yoffset),
       );
     });
 

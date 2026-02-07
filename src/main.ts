@@ -12,11 +12,12 @@ import { Color } from "./Color";
 import { HighScore } from "./game/high-score";
 
 const engine = new Engine();
-engine.initialize().then(() => {
+
+engine.initialize().then(async () => {
   const player = new Player(
     engine.inputManager,
     engine.gameBounds[0],
-    engine.gameBounds[1]
+    engine.gameBounds[1],
   );
   const explosionManager = new ExplosionManager();
   const bulletManager = new BulletManager(player);
@@ -29,8 +30,30 @@ engine.initialize().then(() => {
     player,
     explosionManager,
     bulletManager,
-    highScore
+    highScore,
   );
+
+  const postProcessEffect = await engine.effectsfactory.createBlurEffect();
+  // postProcessEffect.setCombineTexture(Content.iceTexture);
+
+  // document.getElementById("mix-value")?.addEventListener("input", (event) => {
+  //   const target = event.target as HTMLInputElement;
+  //   const value = parseFloat(target.value);
+  //   postProcessEffect.mixValue = value;
+  // });
+
+  document
+    .getElementById("horizontal-pass")
+    ?.addEventListener("change", (event) => {
+      const target = event.target as HTMLInputElement;
+      postProcessEffect.doHorizontalPass = target.checked;
+    });
+  document
+    .getElementById("vertical-pass")
+    ?.addEventListener("change", (event) => {
+      const target = event.target as HTMLInputElement;
+      postProcessEffect.doVerticalPass = target.checked;
+    });
 
   engine.onUpdate = (dt: number) => {
     player.update(dt);
@@ -40,6 +63,13 @@ engine.initialize().then(() => {
     bulletManager.update(dt);
   };
   engine.onDraw = () => {
+    if (postProcessEffect.getRenderTexture()) {
+      engine.setDestinationTexture(
+        postProcessEffect.getRenderTexture()!.texture,
+      );
+    } else {
+      engine.setDestinationTexture(null);
+    }
     backGorund.draw(engine.spriteRenderer);
     player.draw(engine.spriteRenderer);
     enemyManager.draw(engine.spriteRenderer);
@@ -47,6 +77,11 @@ engine.initialize().then(() => {
     explosionManager.draw(engine.spriteRenderer);
 
     highScore.draw(engine.spriteRenderer);
+    // engine.setDestinationTexture(null);
+
+    if (postProcessEffect.getRenderTexture()) {
+      postProcessEffect.draw(engine.getCanvasTexture().createView());
+    }
   };
   engine.draw();
 });

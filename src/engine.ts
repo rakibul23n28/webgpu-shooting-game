@@ -5,7 +5,7 @@ import { MusicContent } from "./music-content";
 import { Rect } from "./rect";
 import { SpriteRenderer } from "./sprite-renderer";
 import { InputManager } from "./input-manager";
-
+import { EffectsFactory } from "./effects-factory";
 export class Engine {
   private context!: GPUCanvasContext;
   private device!: GPUDevice;
@@ -16,13 +16,23 @@ export class Engine {
   private canvas!: HTMLCanvasElement;
   public inputManager!: InputManager;
   public gameBounds = vec2.create();
+  public effectsfactory!: EffectsFactory;
 
   public onUpdate: (dt: number) => void = () => {};
   public onDraw: () => void = () => {};
 
+  //if null then no effect
+  private destinationTexture: GPUTexture | null = null;
+
   private lastTime = 0;
 
-  constructor() {}
+  public setDestinationTexture(texture: GPUTexture | null) {
+    this.destinationTexture = texture;
+  }
+
+  public getCanvasTexture(): GPUTexture {
+    return this.context.getCurrentTexture();
+  }
 
   public async initialize() {
     this.canvas = document.getElementById("gpu-canvas") as HTMLCanvasElement;
@@ -48,17 +58,21 @@ export class Engine {
       device: this.device,
       format: navigator.gpu.getPreferredCanvasFormat(),
     });
-
     this.spriteRenderer = new SpriteRenderer(
       this.device,
       this.canvas.width,
-      this.canvas.height
+      this.canvas.height,
     );
     this.spriteRenderer.initialize();
 
     this.inputManager = new InputManager();
-  }
 
+    this.effectsfactory = new EffectsFactory(
+      this.device,
+      this.canvas.width,
+      this.canvas.height,
+    );
+  }
   /**
    * Draw the current frame of the engine.
    * This method is called internally by the engine's requestAnimationFrame callback.
@@ -72,12 +86,16 @@ export class Engine {
     this.onUpdate(dt);
     const commandEncoder = this.device.createCommandEncoder();
 
+    const textureView =
+      this.destinationTexture != null
+        ? this.destinationTexture.createView()
+        : this.context.getCurrentTexture().createView();
+
     this.renderPass = commandEncoder.beginRenderPass({
       colorAttachments: [
         {
-          view: this.context.getCurrentTexture().createView(),
+          view: textureView,
           clearValue: { r: 0.05, g: 0.07, b: 0.12, a: 1.0 },
-
           loadOp: "clear",
           storeOp: "store",
         },
