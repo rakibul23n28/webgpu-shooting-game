@@ -6,6 +6,7 @@ import { Rect } from "./rect";
 import { SpriteRenderer } from "./sprite-renderer";
 import { InputManager } from "./input-manager";
 import { EffectsFactory } from "./effects-factory";
+import { Texture } from "./texture";
 export class Engine {
   private context!: GPUCanvasContext;
   private device!: GPUDevice;
@@ -23,11 +24,16 @@ export class Engine {
 
   //if null then no effect
   private destinationTexture: GPUTexture | null = null;
+  private destinationTexture2: GPUTexture | null = null;
 
   private lastTime = 0;
 
   public setDestinationTexture(texture: GPUTexture | null) {
     this.destinationTexture = texture;
+  }
+
+  public setDestinationTexture2(texture: GPUTexture | null) {
+    this.destinationTexture2 = texture;
   }
 
   public getCanvasTexture(): GPUTexture {
@@ -72,6 +78,14 @@ export class Engine {
       this.canvas.width,
       this.canvas.height,
     );
+    this.destinationTexture2 = (
+      await Texture.createEmptyTexture(
+        this.device,
+        this.canvas.width,
+        this.canvas.height,
+        "bgra8unorm",
+      )
+    ).texture;
   }
   /**
    * Draw the current frame of the engine.
@@ -95,6 +109,12 @@ export class Engine {
       colorAttachments: [
         {
           view: textureView,
+          clearValue: { r: 0.05, g: 0.07, b: 0.12, a: 1.0 },
+          loadOp: "clear",
+          storeOp: "store",
+        },
+        {
+          view: this.destinationTexture2!.createView(),
           clearValue: { r: 0.05, g: 0.07, b: 0.12, a: 1.0 },
           loadOp: "clear",
           storeOp: "store",

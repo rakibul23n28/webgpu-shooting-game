@@ -33,7 +33,7 @@ engine.initialize().then(async () => {
     highScore,
   );
 
-  const postProcessEffect = await engine.effectsfactory.createBlurEffect();
+  const postProcessEffect = await engine.effectsfactory.createBloomEffect();
   // postProcessEffect.setCombineTexture(Content.iceTexture);
 
   // document.getElementById("mix-value")?.addEventListener("input", (event) => {
@@ -42,18 +42,18 @@ engine.initialize().then(async () => {
   //   postProcessEffect.mixValue = value;
   // });
 
-  document
-    .getElementById("horizontal-pass")
-    ?.addEventListener("change", (event) => {
-      const target = event.target as HTMLInputElement;
-      postProcessEffect.doHorizontalPass = target.checked;
-    });
-  document
-    .getElementById("vertical-pass")
-    ?.addEventListener("change", (event) => {
-      const target = event.target as HTMLInputElement;
-      postProcessEffect.doVerticalPass = target.checked;
-    });
+  // document
+  //   .getElementById("horizontal-pass")
+  //   ?.addEventListener("change", (event) => {
+  //     const target = event.target as HTMLInputElement;
+  //     postProcessEffect.doHorizontalPass = target.checked;
+  //   });
+  // document
+  //   .getElementById("vertical-pass")
+  //   ?.addEventListener("change", (event) => {
+  //     const target = event.target as HTMLInputElement;
+  //     postProcessEffect.doVerticalPass = target.checked;
+  //   });
 
   engine.onUpdate = (dt: number) => {
     player.update(dt);
@@ -63,13 +63,16 @@ engine.initialize().then(async () => {
     bulletManager.update(dt);
   };
   engine.onDraw = () => {
-    if (postProcessEffect.getRenderTexture()) {
-      engine.setDestinationTexture(
-        postProcessEffect.getRenderTexture()!.texture,
-      );
-    } else {
-      engine.setDestinationTexture(null);
-    }
+    // if (postProcessEffect.getRenderTexture()) {
+    //   engine.setDestinationTexture(
+    //     postProcessEffect.getRenderTexture()!.texture,
+    //   );
+    // } else {
+    //   engine.setDestinationTexture(null);
+    // }
+
+    engine.setDestinationTexture(postProcessEffect.sceneTexture.texture);
+    engine.setDestinationTexture2(postProcessEffect.brightnessTexture.texture);
     backGorund.draw(engine.spriteRenderer);
     player.draw(engine.spriteRenderer);
     enemyManager.draw(engine.spriteRenderer);
@@ -79,9 +82,10 @@ engine.initialize().then(async () => {
     highScore.draw(engine.spriteRenderer);
     // engine.setDestinationTexture(null);
 
-    if (postProcessEffect.getRenderTexture()) {
-      postProcessEffect.draw(engine.getCanvasTexture().createView());
-    }
+    // if (postProcessEffect.getRenderTexture()) {
+    //   postProcessEffect.draw(engine.getCanvasTexture().createView());
+    // }
+    postProcessEffect.draw(engine.getCanvasTexture().createView());
   };
   engine.draw();
 });

@@ -9,7 +9,7 @@ export class SpritePipeline {
   public static create(
     device: GPUDevice,
     texture: Texture,
-    projectionViewMatrixBuffer: GPUBuffer
+    projectionViewMatrixBuffer: GPUBuffer,
   ): SpritePipeline {
     const pipeline = new SpritePipeline();
     pipeline.initialize(device, texture, projectionViewMatrixBuffer);
@@ -18,7 +18,7 @@ export class SpritePipeline {
   public initialize(
     device: GPUDevice,
     texture: Texture,
-    projectionViewMatrixBuffer: GPUBuffer
+    projectionViewMatrixBuffer: GPUBuffer,
   ): void {
     const shaderModule = device.createShaderModule({ code: shaderSource });
 
@@ -42,6 +42,21 @@ export class SpritePipeline {
       module: shaderModule,
       entryPoint: "fragmentMain",
       targets: [
+        {
+          format: navigator.gpu.getPreferredCanvasFormat(),
+          blend: {
+            color: {
+              srcFactor: "src-alpha",
+              dstFactor: "one-minus-src-alpha",
+              operation: "add",
+            },
+            alpha: {
+              srcFactor: "src-alpha",
+              dstFactor: "one-minus-src-alpha",
+              operation: "add",
+            },
+          },
+        },
         {
           format: navigator.gpu.getPreferredCanvasFormat(),
           blend: {

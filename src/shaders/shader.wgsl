@@ -29,8 +29,24 @@ fn vertexMain(
 @group(1) @binding(0) var texSampler : sampler;
 @group(1) @binding(1) var tex : texture_2d<f32>;
 
+struct FragmentOut {
+  @location(0) color : vec4<f32>,
+  @location(1) brightness : vec4<f32>,
+};
+
+const brightnessThreshold : f32 = 0.4;
+
 @fragment
-fn fragmentMain(in : VertexOut) -> @location(0) vec4<f32> {
-  let textureColor : vec4<f32> = textureSample(tex, texSampler, in.texCoords);
-  return in.fragColor * textureColor;
+fn fragmentMain(in : VertexOut) -> FragmentOut {
+  let textureColor : vec4<f32> = textureSample(tex, texSampler, in.texCoords) * in.fragColor;
+  var output : FragmentOut;
+  output.color = textureColor;
+  var l = dot(textureColor.xyz, vec3<f32>(0.299, 0.587, 0.114));
+
+  if( l > brightnessThreshold) {
+    output.brightness = textureColor;
+  } else {
+    output.brightness = vec4<f32>(0.0, 0.0, 0.0, textureColor.a);
+  }
+  return output;
 }

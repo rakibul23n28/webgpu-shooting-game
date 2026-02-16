@@ -8,13 +8,16 @@ export class Background {
   private drawRect: Rect;
   private drawRect2: Rect;
 
-  constructor(private gameWidth: number, private gameHeight: number) {
+  constructor(
+    private gameWidth: number,
+    private gameHeight: number,
+  ) {
     this.drawRect = new Rect(0, 0, this.gameWidth, this.gameHeight);
     this.drawRect2 = new Rect(
       0,
       -this.gameHeight,
       this.gameWidth,
-      this.gameHeight
+      this.gameHeight,
     );
   }
   public update(dt: number) {
