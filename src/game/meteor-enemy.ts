@@ -51,7 +51,7 @@ export class MeteorEnemy implements Enemey {
   private wanderDrift = (Math.random() - 0.5) * 0.2;
   private wanderTimer = 0;
 
-  private attackStrength = 0.0025 / 2;
+  private attackStrength = 0.0025 / 1.5;
 
   private attackDistance = 220;
 

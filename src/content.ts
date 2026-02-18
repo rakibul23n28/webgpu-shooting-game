@@ -31,7 +31,7 @@ export class Content {
     );
     Content.backgroundTexture = await Texture.createTextureFromURL(
       device,
-      "Backgrounds/purple.png",
+      "Backgrounds/black.png",
     );
     Content.explosionTexture = await Texture.createTextureFromURL(
       device,

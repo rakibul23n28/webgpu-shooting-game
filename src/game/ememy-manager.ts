@@ -8,7 +8,7 @@ import { MeteorEnemy } from "./meteor-enemy";
 import { Player } from "./player";
 import { vec2 } from "gl-matrix";
 
-const SPAWN_INTERVAL = 1000; // spawn every 2 seconds
+const SPAWN_INTERVAL = 1000;
 
 export class EnemyManager {
   private timeToSpawn = 0;
@@ -34,7 +34,6 @@ export class EnemyManager {
       enemy.active = true;
       enemy.drawRect.x =
         Math.random() * (this.gameWidht - enemy.drawRect.width);
-
       enemy.drawRect.y = -enemy.drawRect.height;
     }
   }
@@ -43,55 +42,70 @@ export class EnemyManager {
     this.timeToSpawn += dt;
     this.spawnEnemy();
 
-    for (const enemy of this.pool) {
+    const playerCenter = vec2.fromValues(
+      this.player.drawRect.x + this.player.drawRect.width / 2,
+      this.player.drawRect.y + this.player.drawRect.height / 2,
+    );
+
+    for (let i = this.pool.length - 1; i >= 0; i--) {
+      const enemy = this.pool[i];
+
       if (enemy.active) {
-        enemy.update(
-          dt,
-          vec2.fromValues(
-            this.player.drawRect.x + this.player.drawRect.width / 2,
-            this.player.drawRect.y + this.player.drawRect.height / 2,
-          ),
-        );
-        //enemy player collision
-        const collisionResult = enemy.circleCollider.intersects(
-          this.player.circleCollider,
-        );
+        enemy.update(dt, playerCenter);
 
-        if (collisionResult) {
-          enemy.active = false;
-
-          //TODO : create explosion
-
-          this.explosionManager.create(enemy.drawRect);
-          SoundManager.play("lose", 1);
+        // 1. SHIELD COLLISION (Elliptical)
+        // Check this first so the shield protects the player
+        if (this.player.shield.active) {
+          if (
+            this.player.shield.ellipticalCollider.intersects(
+              enemy.circleCollider,
+            )
+          ) {
+            this.handleEnemyDestruction(enemy, "shield_hit", false);
+            this.player.shield.onHit(); // Trigger shield hit effect
+            continue; // Skip player collision check
+          }
         }
 
-        //enemy bullet collision
+        // 2. PLAYER COLLISION (Circle)
+        if (enemy.circleCollider.intersects(this.player.circleCollider)) {
+          this.handleEnemyDestruction(enemy, "lose", false);
+          // Potential TODO: this.player.takeDamage() or GameOver()
+          continue;
+        }
 
+        // 3. BULLET COLLISION
         if (this.bulletManager.intersectsEnemy(enemy)) {
-          enemy.active = false;
-
-          //TODO : create explosion
-
-          this.explosionManager.create(enemy.drawRect);
-
-          // Play explosion sound
-          SoundManager.play("explosion", 0.6);
-          this.highScore.currentScore++;
+          this.handleEnemyDestruction(enemy, "explosion", true);
+          continue;
         }
 
-        if (enemy.drawRect.y > this.gameHeight) {
-          enemy.active = false;
-        }
+        // 4. BOUNDS CHECK
         if (
+          enemy.drawRect.y > this.gameHeight ||
           enemy.drawRect.x > this.gameWidht + enemy.drawRect.width ||
           enemy.drawRect.x < -enemy.drawRect.width
         ) {
           enemy.active = false;
         }
-      } else {
-        this.pool.splice(this.pool.indexOf(enemy), 1);
       }
+    }
+  }
+
+  /**
+   * Helper to handle common destruction logic
+   */
+  private handleEnemyDestruction(
+    enemy: Enemey,
+    soundKey: string,
+    awardPoint: boolean,
+  ) {
+    enemy.active = false;
+    this.explosionManager.create(enemy.drawRect);
+    SoundManager.play(soundKey, 0.6);
+
+    if (awardPoint) {
+      this.highScore.currentScore++;
     }
   }
 

@@ -15,6 +15,7 @@ export class MusicContent {
 
     // 🎵 Music
     SoundManager.load("bgm", "Music/background.ogg");
+    SoundManager.load("shield_hit", "Bonus/sfx_shieldDown.ogg");
 
     this.initialized = true;
   }

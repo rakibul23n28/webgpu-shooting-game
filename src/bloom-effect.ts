@@ -15,7 +15,7 @@ export class BloomEffect {
   private brightnessTextureBindGroup!: GPUBindGroup;
   public brightnessTexture!: Texture;
 
-  private blurEffect: BloomBlurEffect;
+  private blurEffect!: BloomBlurEffect;
 
   constructor(
     private device: GPUDevice,
