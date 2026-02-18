@@ -6,6 +6,7 @@ import { Enemey } from "./enemy";
 import { HighScore } from "./high-score";
 import { MeteorEnemy } from "./meteor-enemy";
 import { Player } from "./player";
+import { vec2 } from "gl-matrix";
 
 const SPAWN_INTERVAL = 1000; // spawn every 2 seconds
 
@@ -19,7 +20,7 @@ export class EnemyManager {
     private readonly player: Player,
     private readonly explosionManager: ExplosionManager,
     private readonly bulletManager: BulletManager,
-    private readonly highScore: HighScore
+    private readonly highScore: HighScore,
   ) {}
 
   public spawnEnemy() {
@@ -44,9 +45,19 @@ export class EnemyManager {
 
     for (const enemy of this.pool) {
       if (enemy.active) {
-        enemy.update(dt);
+        enemy.update(
+          dt,
+          vec2.fromValues(
+            this.player.drawRect.x + this.player.drawRect.width / 2,
+            this.player.drawRect.y + this.player.drawRect.height / 2,
+          ),
+        );
         //enemy player collision
-        if (enemy.circleCollider.intersects(this.player.circleCollider)) {
+        const collisionResult = enemy.circleCollider.intersects(
+          this.player.circleCollider,
+        );
+
+        if (collisionResult) {
           enemy.active = false;
 
           //TODO : create explosion
@@ -54,6 +65,7 @@ export class EnemyManager {
           this.explosionManager.create(enemy.drawRect);
           SoundManager.play("lose", 1);
         }
+
         //enemy bullet collision
 
         if (this.bulletManager.intersectsEnemy(enemy)) {
@@ -71,6 +83,14 @@ export class EnemyManager {
         if (enemy.drawRect.y > this.gameHeight) {
           enemy.active = false;
         }
+        if (
+          enemy.drawRect.x > this.gameWidht + enemy.drawRect.width ||
+          enemy.drawRect.x < -enemy.drawRect.width
+        ) {
+          enemy.active = false;
+        }
+      } else {
+        this.pool.splice(this.pool.indexOf(enemy), 1);
       }
     }
   }

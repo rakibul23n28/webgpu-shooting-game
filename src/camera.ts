@@ -5,7 +5,10 @@ export class Camera {
   private view!: mat4;
   public projectionViewMatrix: mat4 = mat4.create();
 
-  constructor(public width: number, public height: number) {
+  constructor(
+    public width: number,
+    public height: number,
+  ) {
     this.projectionViewMatrix = mat4.create();
   }
 
@@ -17,7 +20,7 @@ export class Camera {
       this.height, // bottom
       0, // top
       -1, // near
-      1 // far
+      1, // far
     );
 
     this.view = mat4.lookAt(mat4.create(), [0, 0, 1], [0, 0, 0], [0, 1, 0]);

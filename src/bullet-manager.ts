@@ -23,6 +23,8 @@ export class BulletManager {
       if (bullet.active && bullet.colider.intersects(enemey.circleCollider)) {
         bullet.active = false;
         return true;
+      } else if (!bullet.active) {
+        this.pool.splice(this.pool.indexOf(bullet), 1);
       }
     }
     return false;
