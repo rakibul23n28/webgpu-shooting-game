@@ -32,35 +32,55 @@ A **2D shooting game built with WebGPU and TypeScript**, featuring custom render
 
 ```plaintext
 src/
-├── game/                     # Game-specific logic
-│   ├── background.ts         # Scrolling background
-│   ├── enemy.ts              # Base enemy class
-│   ├── ememy-manager.ts      # Enemy spawn & control
-│   ├── meteor-enemy.ts       # Special enemy type
-│   ├── player.ts             # Player logic & controls
-│   └── high-score.ts         # Score tracking
+│   bloom-blur-effect.ts
+│   bloom-effect.ts
+│   blur-effect.ts
+│   buffer-util.ts
+│   bullet-manager.ts
+│   bullet.ts
+│   camera.ts
+│   circle-colider.ts
+│   Color.ts
+│   content.ts
+│   effects-factory.ts
+│   elliptical-collider.ts
+│   engine.ts
+│   explosion-manager.ts
+│   explosion.ts
+│   input-manager.ts
+│   main.ts
+│   music-content.ts
+│   post-process-effect.ts
+│   quad.ts
+│   rect.ts
+│   sound-manager.ts
+│   spite-pipeline.ts
+│   sprite-font.ts
+│   sprite-renderer.ts
+│   Sprite.ts
+│   texture-effect.ts
+│   texture.ts
 │
-├── shaders/                  # WebGPU shader files
+├───game
+│       background.ts
+│       ememy-manager.ts
+│       enemy.ts
+│       game-over.ts
+│       high-score.ts
+│       meteor-enemy.ts
+│       player.ts
+│       power-bolt-manager.ts
+│       power-bolt.ts
+│       power-up-manager.ts
+│       power-up-shield.ts
+│       shield.ts
 │
-├── engine.ts                 # Core game engine loop
-├── main.ts                   # Entry point
-├── camera.ts                 # Camera handling
-├── input-manager.ts          # Keyboard input system
-├── bullet.ts                 # Bullet entity
-├── bullet-manager.ts         # Bullet lifecycle management
-├── explosion.ts              # Explosion animation
-├── explosion-manager.ts      # Explosion controller
-├── sprite-renderer.ts        # Sprite rendering pipeline
-├── sprite-font.ts            # Text & font rendering
-├── texture.ts                # Texture loading
-├── sound-manager.ts          # Sound effects & music
-├── music-content.ts          # Background music config
-├── geometry.ts               # GPU geometry helpers
-├── buffer-util.ts            # WebGPU buffer utilities
-├── rect.ts                   # Rectangle math
-├── quad.ts                   # Quad primitives
-├── circle-colider.ts         # Collision detection
-└── content.ts                # Asset management
+└───shaders
+        bloom-effect.wgsl
+        blur-effect.wgsl
+        post-process.wgsl
+        shader.wgsl
+        texture-effect.wgsl
 ```
 
 ---
