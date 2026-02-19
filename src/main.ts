@@ -10,27 +10,43 @@ import { Player } from "./game/player";
 import { SpriteRenderer } from "./sprite-renderer";
 import { Color } from "./Color";
 import { HighScore } from "./game/high-score";
+import { PowerUpManager } from "./game/power-up-manager";
+import { PowerBoltManager } from "./game/power-bolt-manager";
+import { GameOver } from "./game/game-over"; // Added GameOver Import
 
 const engine = new Engine();
 
 engine.initialize().then(async () => {
-  const player = new Player(
+  let player = new Player(
     engine.inputManager,
     engine.gameBounds[0],
     engine.gameBounds[1],
   );
-  const explosionManager = new ExplosionManager();
-  const bulletManager = new BulletManager(player);
-  const highScore = new HighScore();
+  let explosionManager = new ExplosionManager();
+  let bulletManager = new BulletManager(player);
+  let highScore = new HighScore();
+  let gameOverScreen = new GameOver(); // Added
 
   const backGorund = new Background(engine.gameBounds[0], engine.gameBounds[1]);
-  const enemyManager = new EnemyManager(
+  let enemyManager = new EnemyManager(
     engine.gameBounds[0],
     engine.gameBounds[1],
     player,
     explosionManager,
     bulletManager,
     highScore,
+  );
+  let powerUpManager = new PowerUpManager(
+    engine.gameBounds[0],
+    engine.gameBounds[1],
+    player,
+  );
+
+  let powerBoltManager = new PowerBoltManager(
+    engine.gameBounds[0],
+    engine.gameBounds[1],
+    player,
+    bulletManager,
   );
 
   const postProcessEffect = await engine.effectsfactory.createBloomEffect();
@@ -55,13 +71,59 @@ engine.initialize().then(async () => {
   //     postProcessEffect.doVerticalPass = target.checked;
   //   });
 
+  // Helper for restarting the game state
+  const restartGame = () => {
+    player = new Player(
+      engine.inputManager,
+      engine.gameBounds[0],
+      engine.gameBounds[1],
+    );
+    explosionManager = new ExplosionManager();
+    bulletManager = new BulletManager(player);
+    highScore = new HighScore();
+    enemyManager = new EnemyManager(
+      engine.gameBounds[0],
+      engine.gameBounds[1],
+      player,
+      explosionManager,
+      bulletManager,
+      highScore,
+    );
+    powerUpManager = new PowerUpManager(
+      engine.gameBounds[0],
+      engine.gameBounds[1],
+      player,
+    );
+    powerBoltManager = new PowerBoltManager(
+      engine.gameBounds[0],
+      engine.gameBounds[1],
+      player,
+      bulletManager,
+    );
+    enemyManager.isGameOver = false;
+  };
+
   engine.onUpdate = (dt: number) => {
+    // Check for Game Over State
+    if (enemyManager.isGameOver) {
+      gameOverScreen.currentScore = highScore.currentScore;
+
+      // If Game Over, listen for Enter to restart
+      if (engine.inputManager.isKeyDown("enter")) {
+        restartGame();
+      }
+      return; // Freeze game updates
+    }
+
     player.update(dt);
     backGorund.update(dt);
     enemyManager.update(dt);
     explosionManager.update(dt);
     bulletManager.update(dt);
+    powerUpManager.update(dt);
+    powerBoltManager.update(dt);
   };
+
   engine.onDraw = () => {
     // if (postProcessEffect.getRenderTexture()) {
     //   engine.setDestinationTexture(
@@ -73,6 +135,7 @@ engine.initialize().then(async () => {
 
     engine.setDestinationTexture(postProcessEffect.sceneTexture.texture);
     engine.setDestinationTexture2(postProcessEffect.brightnessTexture.texture);
+
     backGorund.draw(engine.spriteRenderer);
     player.draw(engine.spriteRenderer);
     enemyManager.draw(engine.spriteRenderer);
@@ -80,6 +143,18 @@ engine.initialize().then(async () => {
     explosionManager.draw(engine.spriteRenderer);
 
     highScore.draw(engine.spriteRenderer);
+    powerUpManager.draw(engine.spriteRenderer);
+    powerBoltManager.draw(engine.spriteRenderer);
+
+    // Draw Game Over UI on top of everything before post-processing
+    if (enemyManager.isGameOver) {
+      gameOverScreen.draw(
+        engine.spriteRenderer,
+        engine.gameBounds[0],
+        engine.gameBounds[1],
+      );
+    }
+
     // engine.setDestinationTexture(null);
 
     // if (postProcessEffect.getRenderTexture()) {

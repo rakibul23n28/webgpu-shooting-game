@@ -8,10 +8,12 @@ export class MusicContent {
     if (this.initialized) return;
 
     // 🔊 SFX
-    SoundManager.load("explosion", "Bonus/sfx_shieldUp.ogg");
+    SoundManager.load("explosion", "Bonus/sfx_shieldDown.ogg");
     SoundManager.load("laser", "Bonus/sfx_laser2.ogg");
     SoundManager.load("hit", "Bonus/sfx_hit.ogg");
     SoundManager.load("lose", "Bonus/sfx_lose.ogg");
+    // powerup
+    SoundManager.load("powerup", "Bonus/sfx_shieldUp.ogg");
 
     // 🎵 Music
     SoundManager.load("bgm", "Music/background.ogg");

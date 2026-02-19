@@ -12,8 +12,8 @@ export class HighScore {
       Content.spriteFont,
       `Score: ${this.currentScore}`,
       this.position,
-      new Color(1, 0, 0),
-      0.5
+      new Color(1, 1, 1),
+      0.5,
     );
   }
 }

@@ -13,6 +13,7 @@ const SPAWN_INTERVAL = 1000;
 export class EnemyManager {
   private timeToSpawn = 0;
   private pool: Enemey[] = [];
+  public isGameOver = false;
 
   constructor(
     private gameWidht: number,
@@ -39,6 +40,7 @@ export class EnemyManager {
   }
 
   public update(dt: number) {
+    if (this.isGameOver) return;
     this.timeToSpawn += dt;
     this.spawnEnemy();
 
@@ -70,6 +72,7 @@ export class EnemyManager {
         // 2. PLAYER COLLISION (Circle)
         if (enemy.circleCollider.intersects(this.player.circleCollider)) {
           this.handleEnemyDestruction(enemy, "lose", false);
+          this.isGameOver = true;
           // Potential TODO: this.player.takeDamage() or GameOver()
           continue;
         }

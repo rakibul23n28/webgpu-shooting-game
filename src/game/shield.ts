@@ -13,8 +13,12 @@ export class Shield {
   public texture: Texture;
   public ellipticalCollider: EllipticalCollider = new EllipticalCollider();
 
-  public color = new Color(1, 1, 1);
+  public color = new Color(1, 1, 1, 1);
   private hitTimer: number = 0;
+
+  // Timer to track total shield duration
+  private shieldDurationTimer: number = 0;
+  private readonly MAX_SHIELD_TIME = 10000; // 10 seconds
 
   constructor() {
     const sprite = Content.sprites["shield1"];
@@ -23,27 +27,53 @@ export class Shield {
     this.sourceRect = sprite.sourceRect.copy();
   }
 
+  /**
+   * Activates the shield and resets the 10-second timer.
+   */
+  public activate() {
+    this.active = true;
+    this.shieldDurationTimer = this.MAX_SHIELD_TIME;
+  }
+
+  /**
+   * Triggers the red flashing effect when hit.
+   */
   public onHit() {
-    this.hitTimer = 1000; // 1 second flash duration
+    this.hitTimer = 1000; // 1 second flash
   }
 
   update(dt: number, playerRect: Rect, isShrunk: boolean) {
+    // --- CRITICAL FIX: ALWAYS UPDATE POSITION ---
+    // We update the position even if active is false so that when it
+    // turns on, it doesn't "jump" from an old location.
+    const padding = isShrunk ? 15 : 20;
+    this.drawRect.width = playerRect.width + padding;
+    this.drawRect.height = playerRect.height + padding;
+    this.drawRect.x =
+      playerRect.x - (this.drawRect.width - playerRect.width) / 2;
+    this.drawRect.y =
+      playerRect.y - (this.drawRect.height - playerRect.height) / 2;
+
+    this.ellipticalCollider.update(this.drawRect);
+
+    // If shield is not active, stop here (don't process timers or colors)
+    if (!this.active) return;
+
+    // 1. Handle Shield Life Duration
+    this.shieldDurationTimer -= dt;
+    if (this.shieldDurationTimer <= 0) {
+      this.active = false;
+      this.shieldDurationTimer = 0;
+      return;
+    }
+
+    // 2. Handle Hit Flashing logic (Red <-> Normal)
     if (this.hitTimer > 0) {
       this.hitTimer -= dt;
-
-      // 1. Calculate flashing speed
-      // Increase '15' to flash faster, decrease to flash slower
       const flashSpeed = 15;
-
-      // Math.sin oscillates between -1 and 1.
-      // We transform it to 0 and 1.
       const sineWave = Math.sin((performance.now() / 1000) * flashSpeed);
+      const intensity = (sineWave + 1) / 2;
 
-      const intensity = (sineWave + 1) / 2; // Maps -1..1 to 0..1
-
-      // 2. Apply Colors
-      // When intensity is 1 -> Red (1, 0.2, 0.2)
-      // When intensity is 0 -> White (1, 1, 1)
       this.color.r = 1.0;
       this.color.g = 1.0 - intensity;
       this.color.b = 1.0 - intensity;
@@ -54,20 +84,18 @@ export class Shield {
       this.color.b = 1.0;
     }
 
-    // Padding and Positioning
-    const padding = isShrunk ? 15 : 20;
-    this.drawRect.width = playerRect.width + padding;
-    this.drawRect.height = playerRect.height + padding;
-    this.drawRect.x =
-      playerRect.x - (this.drawRect.width - playerRect.width) / 2;
-    this.drawRect.y =
-      playerRect.y - (this.drawRect.height - playerRect.height) / 2;
-
-    this.ellipticalCollider.update(this.drawRect);
+    // 3. Expiration Warning: Flicker when less than 1.5s remains
+    if (this.shieldDurationTimer < 1500) {
+      const expireFlash = Math.sin(performance.now() * 0.02);
+      this.color.a = expireFlash > 0 ? 1.0 : 0.3;
+    } else {
+      this.color.a = 1.0;
+    }
   }
 
   draw(spriteRenderer: SpriteRenderer) {
     if (!this.active) return;
+
     spriteRenderer.drawSpriteSource(
       this.texture,
       this.drawRect,

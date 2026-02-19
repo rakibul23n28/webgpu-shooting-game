@@ -112,7 +112,6 @@ export class Player {
     this.drawRect.x += this.movementDirection[0] * currentSpeed * dt;
     this.drawRect.y += this.movementDirection[1] * currentSpeed * dt;
 
-    this.shield.active = this.inputManager.isLeftMouseDown();
     this.shield.update(dt, this.drawRect, this.isShrunk);
 
     this.clampToBounds();

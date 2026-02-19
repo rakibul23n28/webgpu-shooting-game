@@ -5,6 +5,6 @@ export class Sprite {
   constructor(
     public texture: Texture,
     public drawRect: Rect,
-    public sourceRect: Rect
+    public sourceRect: Rect,
   ) {}
 }
