@@ -20,7 +20,7 @@ export class Engine {
   public effectsfactory!: EffectsFactory;
 
   public onUpdate: (dt: number) => void = () => {};
-  public onDraw: () => void = () => {};
+  public onDraw: (commandEncoder: GPUCommandEncoder) => void = () => {};
 
   //if null then no effect
   private destinationTexture: GPUTexture | null = null;
@@ -125,7 +125,7 @@ export class Engine {
     //begin draw
     this.spriteRenderer.framepass(this.renderPass);
 
-    this.onDraw();
+    this.onDraw(commandEncoder);
 
     this.spriteRenderer.flameEnd();
 

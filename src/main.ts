@@ -5,162 +5,122 @@ import { Engine } from "./engine";
 import { ExplosionManager } from "./explosion-manager";
 import { Background } from "./game/background";
 import { EnemyManager } from "./game/ememy-manager";
-import { MeteorEnemy } from "./game/meteor-enemy";
 import { Player } from "./game/player";
 import { SpriteRenderer } from "./sprite-renderer";
-import { Color } from "./Color";
 import { HighScore } from "./game/high-score";
 import { PowerUpManager } from "./game/power-up-manager";
 import { PowerBoltManager } from "./game/power-bolt-manager";
-import { GameOver } from "./game/game-over"; // Added GameOver Import
+import { GameOver } from "./game/game-over";
 
 const engine = new Engine();
 
 engine.initialize().then(async () => {
-  let player = new Player(
-    engine.inputManager,
-    engine.gameBounds[0],
-    engine.gameBounds[1],
-  );
-  let explosionManager = new ExplosionManager();
-  let bulletManager = new BulletManager(player);
-  let highScore = new HighScore();
-  let gameOverScreen = new GameOver(); // Added
+  // 1. Extract constants for cleaner access
+  const [width, height] = engine.gameBounds;
+  const input = engine.inputManager;
+  const renderer = engine.spriteRenderer;
 
-  const backGorund = new Background(engine.gameBounds[0], engine.gameBounds[1]);
-  let enemyManager = new EnemyManager(
-    engine.gameBounds[0],
-    engine.gameBounds[1],
-    player,
-    explosionManager,
-    bulletManager,
-    highScore,
-  );
-  let powerUpManager = new PowerUpManager(
-    engine.gameBounds[0],
-    engine.gameBounds[1],
-    player,
-  );
+  // 2. Persistent Systems (Created once, reused forever)
+  const highScore = new HighScore();
+  const gameOverScreen = new GameOver();
+  const explosionManager = new ExplosionManager();
+  const background = new Background(width, height);
 
-  let powerBoltManager = new PowerBoltManager(
-    engine.gameBounds[0],
-    engine.gameBounds[1],
-    player,
-    bulletManager,
-  );
+  // 3. Game State Variables
+  let player: Player;
+  let bulletManager: BulletManager;
+  let enemyBulletManager: BulletManager;
+  let enemyManager: EnemyManager;
+  let powerUpManager: PowerUpManager;
+  let powerBoltManager: PowerBoltManager;
 
-  const postProcessEffect = await engine.effectsfactory.createBloomEffect();
-  // postProcessEffect.setCombineTexture(Content.iceTexture);
+  // 4. Initialization/Restart Logic
+  const initGame = () => {
+    // Create player
+    player = new Player(input, width, height);
 
-  // document.getElementById("mix-value")?.addEventListener("input", (event) => {
-  //   const target = event.target as HTMLInputElement;
-  //   const value = parseFloat(target.value);
-  //   postProcessEffect.mixValue = value;
-  // });
+    // Initialize Managers
+    // We recreate these to ensure a fresh state, but background/highScore persist
+    bulletManager = new BulletManager(player, false);
+    enemyBulletManager = new BulletManager(player, true);
 
-  // document
-  //   .getElementById("horizontal-pass")
-  //   ?.addEventListener("change", (event) => {
-  //     const target = event.target as HTMLInputElement;
-  //     postProcessEffect.doHorizontalPass = target.checked;
-  //   });
-  // document
-  //   .getElementById("vertical-pass")
-  //   ?.addEventListener("change", (event) => {
-  //     const target = event.target as HTMLInputElement;
-  //     postProcessEffect.doVerticalPass = target.checked;
-  //   });
-
-  // Helper for restarting the game state
-  const restartGame = () => {
-    player = new Player(
-      engine.inputManager,
-      engine.gameBounds[0],
-      engine.gameBounds[1],
-    );
-    explosionManager = new ExplosionManager();
-    bulletManager = new BulletManager(player);
-    highScore = new HighScore();
     enemyManager = new EnemyManager(
-      engine.gameBounds[0],
-      engine.gameBounds[1],
+      width,
+      height,
       player,
       explosionManager,
       bulletManager,
+      enemyBulletManager,
       highScore,
     );
-    powerUpManager = new PowerUpManager(
-      engine.gameBounds[0],
-      engine.gameBounds[1],
-      player,
-    );
+
+    powerUpManager = new PowerUpManager(width, height, player);
     powerBoltManager = new PowerBoltManager(
-      engine.gameBounds[0],
-      engine.gameBounds[1],
+      width,
+      height,
       player,
       bulletManager,
     );
-    enemyManager.isGameOver = false;
+
+    // Reset persistent systems
+    highScore.currentScore = 0;
+    explosionManager.update(0); // Optional: clear existing explosions
   };
 
+  // Run first initialization
+  initGame();
+
+  // 5. Effects Setup
+  const postProcessEffect = await engine.effectsfactory.createBloomEffect();
+
+  // 6. Main Update Loop
   engine.onUpdate = (dt: number) => {
-    // Check for Game Over State
     if (enemyManager.isGameOver) {
       gameOverScreen.currentScore = highScore.currentScore;
-
-      // If Game Over, listen for Enter to restart
-      if (engine.inputManager.isKeyDown("enter")) {
-        restartGame();
+      if (input.isKeyDown("enter")) {
+        initGame();
       }
-      return; // Freeze game updates
+      return;
     }
 
+    // Parallel update logic
+    background.update(dt);
     player.update(dt);
-    backGorund.update(dt);
     enemyManager.update(dt);
-    explosionManager.update(dt);
     bulletManager.update(dt);
+    explosionManager.update(dt);
     powerUpManager.update(dt);
     powerBoltManager.update(dt);
   };
 
-  engine.onDraw = () => {
-    // if (postProcessEffect.getRenderTexture()) {
-    //   engine.setDestinationTexture(
-    //     postProcessEffect.getRenderTexture()!.texture,
-    //   );
-    // } else {
-    //   engine.setDestinationTexture(null);
-    // }
-
+  // 7. Main Draw Loop
+  engine.onDraw = (commandEncoder: GPUCommandEncoder) => {
+    // Prepare Post-Processing Buffers
     engine.setDestinationTexture(postProcessEffect.sceneTexture.texture);
     engine.setDestinationTexture2(postProcessEffect.brightnessTexture.texture);
 
-    backGorund.draw(engine.spriteRenderer);
-    player.draw(engine.spriteRenderer);
-    enemyManager.draw(engine.spriteRenderer);
-    bulletManager.draw(engine.spriteRenderer);
-    explosionManager.draw(engine.spriteRenderer);
+    // Render Game World
+    background.draw(renderer);
+    player.draw(renderer);
+    enemyManager.draw(renderer);
+    bulletManager.draw(renderer);
+    explosionManager.draw(renderer);
+    powerUpManager.draw(renderer);
+    powerBoltManager.draw(renderer);
+    highScore.draw(renderer);
 
-    highScore.draw(engine.spriteRenderer);
-    powerUpManager.draw(engine.spriteRenderer);
-    powerBoltManager.draw(engine.spriteRenderer);
-
-    // Draw Game Over UI on top of everything before post-processing
+    // Render UI
     if (enemyManager.isGameOver) {
-      gameOverScreen.draw(
-        engine.spriteRenderer,
-        engine.gameBounds[0],
-        engine.gameBounds[1],
-      );
+      gameOverScreen.draw(renderer, width, height);
     }
 
-    // engine.setDestinationTexture(null);
-
-    // if (postProcessEffect.getRenderTexture()) {
-    //   postProcessEffect.draw(engine.getCanvasTexture().createView());
-    // }
-    postProcessEffect.draw(engine.getCanvasTexture().createView());
+    // Final Composite to Canvas
+    postProcessEffect.draw(
+      engine.getCanvasTexture().createView(),
+      commandEncoder,
+    );
   };
+
+  // Start Engine
   engine.draw();
 });

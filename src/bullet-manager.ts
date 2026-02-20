@@ -1,82 +1,84 @@
 import { Bullet } from "./bullet";
 import { Enemey } from "./game/enemy";
 import { Player } from "./game/player";
+import { Shield } from "./game/shield"; // Added Import
+import { Rect } from "./rect";
 import { SpriteRenderer } from "./sprite-renderer";
 
 const NORMAL_SPAWN_TIME = 250;
-const RAPID_SPAWN_TIME = 150; // Adjusted slightly for the 3-bullet burst
+const RAPID_SPAWN_TIME = 150;
 
 export class BulletManager {
   private pool: Bullet[] = [];
   private timeToNextSpawn = 0;
   private rapidFireTimer = 0;
 
-  constructor(private readonly player: Player) {}
+  constructor(
+    private readonly player: Player,
+    private readonly isEnemyManager: boolean = false,
+  ) {}
 
   public activateRapidFire(duration: number) {
     this.rapidFireTimer = duration;
   }
 
-  /**
-   * Modified to support Triple Shot
-   */
   public create() {
     if (this.rapidFireTimer > 0) {
-      // --- TRIPLE SHOT LOGIC ---
-      // We spawn 3 bullets with different offsets
-      this.spawnSingleBullet(-15); // Left bullet
-      this.spawnSingleBullet(0); // Center bullet
-      this.spawnSingleBullet(15); // Right bullet
+      this.spawnSingleBullet(this.player.drawRect, -15, false);
+      this.spawnSingleBullet(this.player.drawRect, 0, false);
+      this.spawnSingleBullet(this.player.drawRect, 15, false);
     } else {
-      // --- NORMAL SHOT ---
-      this.spawnSingleBullet(0);
+      this.spawnSingleBullet(this.player.drawRect, 0, false);
     }
   }
 
-  /**
-   * Helper to handle pooling and spawning with an offset
-   */
-  private spawnSingleBullet(offsetX: number) {
+  public createEnemyBullet(sourceRect: Rect) {
+    this.spawnSingleBullet(sourceRect, 0, true);
+  }
+
+  private spawnSingleBullet(source: Rect, offsetX: number, isEnemy: boolean) {
     let bullet = this.pool.find((b) => !b.active);
     if (!bullet) {
       bullet = new Bullet();
       this.pool.push(bullet);
     }
-
-    bullet.spawn(this.player);
-    // Apply horizontal offset so they are side-by-side
+    bullet.spawn(source, isEnemy);
     bullet.drawRect.x += offsetX;
   }
 
-  public intersectsEnemy(enemey: Enemey) {
+  public intersectsEnemy(enemey: Enemey): boolean {
     for (let i = this.pool.length - 1; i >= 0; i--) {
       const bullet = this.pool[i];
-      if (bullet.active) {
-        if (bullet.colider.intersects(enemey.circleCollider)) {
-          bullet.active = false;
-          return true;
-        }
-      } else {
-        this.pool.splice(i, 1);
+      if (bullet.active && bullet.colider.intersects(enemey.circleCollider)) {
+        bullet.active = false;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public intersectsPlayer(player: Player): boolean {
+    for (let i = this.pool.length - 1; i >= 0; i--) {
+      const bullet = this.pool[i];
+      if (bullet.active && bullet.colider.intersects(player.circleCollider)) {
+        bullet.active = false;
+        return true;
       }
     }
     return false;
   }
 
   public update(dt: number) {
-    let currentSpawnInterval = NORMAL_SPAWN_TIME;
+    if (!this.isEnemyManager) {
+      let currentSpawnInterval =
+        this.rapidFireTimer > 0 ? RAPID_SPAWN_TIME : NORMAL_SPAWN_TIME;
+      if (this.rapidFireTimer > 0) this.rapidFireTimer -= dt;
 
-    if (this.rapidFireTimer > 0) {
-      this.rapidFireTimer -= dt;
-      currentSpawnInterval = RAPID_SPAWN_TIME;
-    } else {
-      this.rapidFireTimer = 0;
-    }
-
-    this.timeToNextSpawn += dt;
-    if (this.timeToNextSpawn > currentSpawnInterval) {
-      this.timeToNextSpawn = 0;
-      this.create();
+      this.timeToNextSpawn += dt;
+      if (this.timeToNextSpawn > currentSpawnInterval) {
+        this.timeToNextSpawn = 0;
+        this.create();
+      }
     }
 
     for (const bullet of this.pool) {
