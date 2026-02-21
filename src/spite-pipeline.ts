@@ -10,32 +10,50 @@ export class SpritePipeline {
     device: GPUDevice,
     texture: Texture,
     projectionViewMatrixBuffer: GPUBuffer,
+    canvasFormat: GPUTextureFormat,
+    bloomFormat: GPUTextureFormat,
   ): SpritePipeline {
     const pipeline = new SpritePipeline();
-    pipeline.initialize(device, texture, projectionViewMatrixBuffer);
+    pipeline.initialize(
+      device,
+      texture,
+      projectionViewMatrixBuffer,
+      canvasFormat,
+      bloomFormat,
+    );
     return pipeline;
   }
+
   public initialize(
     device: GPUDevice,
     texture: Texture,
     projectionViewMatrixBuffer: GPUBuffer,
+    canvasFormat: GPUTextureFormat,
+    bloomFormat: GPUTextureFormat,
   ): void {
     const shaderModule = device.createShaderModule({ code: shaderSource });
 
     const bufferLayout: GPUVertexBufferLayout = {
-      arrayStride: 7 * 4,
+      arrayStride: 7 * 4, // 7 floats (x,y,u,v,r,g,b) * 4 bytes
       attributes: [
-        { shaderLocation: 0, offset: 0, format: "float32x2" },
-        { shaderLocation: 1, offset: 2 * 4, format: "float32x2" },
-        { shaderLocation: 2, offset: 4 * 4, format: "float32x3" },
+        { shaderLocation: 0, offset: 0, format: "float32x2" }, // position
+        { shaderLocation: 1, offset: 2 * 4, format: "float32x2" }, // uv
+        { shaderLocation: 2, offset: 4 * 4, format: "float32x3" }, // color
       ],
       stepMode: "vertex",
     };
 
-    const vertexState: GPUVertexState = {
-      module: shaderModule,
-      entryPoint: "vertexMain",
-      buffers: [bufferLayout],
+    const blendState: GPUBlendState = {
+      color: {
+        srcFactor: "src-alpha",
+        dstFactor: "one-minus-src-alpha",
+        operation: "add",
+      },
+      alpha: {
+        srcFactor: "one",
+        dstFactor: "one-minus-src-alpha",
+        operation: "add",
+      },
     };
 
     const fragmentState: GPUFragmentState = {
@@ -43,66 +61,39 @@ export class SpritePipeline {
       entryPoint: "fragmentMain",
       targets: [
         {
-          format: navigator.gpu.getPreferredCanvasFormat(),
-          blend: {
-            color: {
-              srcFactor: "src-alpha",
-              dstFactor: "one-minus-src-alpha",
-              operation: "add",
-            },
-            alpha: {
-              srcFactor: "src-alpha",
-              dstFactor: "one-minus-src-alpha",
-              operation: "add",
-            },
-          },
+          format: canvasFormat,
+          blend: blendState,
         },
         {
-          format: navigator.gpu.getPreferredCanvasFormat(),
-          blend: {
-            color: {
-              srcFactor: "src-alpha",
-              dstFactor: "one-minus-src-alpha",
-              operation: "add",
-            },
-            alpha: {
-              srcFactor: "src-alpha",
-              dstFactor: "one-minus-src-alpha",
-              operation: "add",
-            },
-          },
+          format: bloomFormat,
+          blend: blendState,
         },
       ],
     };
 
-    // Texture bind group
+    // Bind Group Layouts
     const bindGroupLayout = device.createBindGroupLayout({
       entries: [
         { binding: 0, visibility: GPUShaderStage.FRAGMENT, sampler: {} },
         { binding: 1, visibility: GPUShaderStage.FRAGMENT, texture: {} },
       ],
     });
+
     const projectionViewBindGroupLayout = device.createBindGroupLayout({
       entries: [
         {
           binding: 0,
           visibility: GPUShaderStage.VERTEX,
-          buffer: {
-            type: "uniform",
-          },
+          buffer: { type: "uniform" },
         },
       ],
     });
 
+    // Create Bind Groups
     this.projectionViewBindGroup = device.createBindGroup({
       layout: projectionViewBindGroupLayout,
       entries: [
-        {
-          binding: 0,
-          resource: {
-            buffer: projectionViewMatrixBuffer,
-          },
-        },
+        { binding: 0, resource: { buffer: projectionViewMatrixBuffer } },
       ],
     });
 
@@ -114,13 +105,18 @@ export class SpritePipeline {
       ],
     });
 
+    // Pipeline Layout and Pipeline
     const pipelineLayout = device.createPipelineLayout({
       bindGroupLayouts: [projectionViewBindGroupLayout, bindGroupLayout],
     });
 
     this.pipeline = device.createRenderPipeline({
       layout: pipelineLayout,
-      vertex: vertexState,
+      vertex: {
+        module: shaderModule,
+        entryPoint: "vertexMain",
+        buffers: [bufferLayout],
+      },
       fragment: fragmentState,
       primitive: { topology: "triangle-list" },
     });

@@ -6,41 +6,39 @@ import { ExplosionManager } from "./explosion-manager";
 import { Background } from "./game/background";
 import { EnemyManager } from "./game/ememy-manager";
 import { Player } from "./game/player";
-import { SpriteRenderer } from "./sprite-renderer";
 import { HighScore } from "./game/high-score";
 import { PowerUpManager } from "./game/power-up-manager";
 import { PowerBoltManager } from "./game/power-bolt-manager";
 import { GameOver } from "./game/game-over";
+import { Rect } from "./rect";
+import { Color } from "./Color";
+import { ShapeManager } from "./shape-manager";
 
 const engine = new Engine();
 
 engine.initialize().then(async () => {
-  // 1. Extract constants for cleaner access
   const [width, height] = engine.gameBounds;
   const input = engine.inputManager;
-  const renderer = engine.spriteRenderer;
+  const spriteRenderer = engine.spriteRenderer;
+  const shapeRenderer = engine.shapeRenderer;
 
-  // 2. Persistent Systems (Created once, reused forever)
+  // Systems
   const highScore = new HighScore();
   const gameOverScreen = new GameOver();
   const explosionManager = new ExplosionManager();
   const background = new Background(width, height);
 
-  // 3. Game State Variables
+  // Dynamic State
   let player: Player;
   let bulletManager: BulletManager;
   let enemyBulletManager: BulletManager;
   let enemyManager: EnemyManager;
   let powerUpManager: PowerUpManager;
   let powerBoltManager: PowerBoltManager;
+  let shapeManager: ShapeManager;
 
-  // 4. Initialization/Restart Logic
   const initGame = () => {
-    // Create player
     player = new Player(input, width, height);
-
-    // Initialize Managers
-    // We recreate these to ensure a fresh state, but background/highScore persist
     bulletManager = new BulletManager(player, false);
     enemyBulletManager = new BulletManager(player, true);
 
@@ -61,29 +59,22 @@ engine.initialize().then(async () => {
       player,
       bulletManager,
     );
+    shapeManager = new ShapeManager(width, height);
 
-    // Reset persistent systems
     highScore.currentScore = 0;
-    explosionManager.update(0); // Optional: clear existing explosions
   };
 
-  // Run first initialization
   initGame();
 
-  // 5. Effects Setup
-  const postProcessEffect = await engine.effectsfactory.createBloomEffect();
+  const bloomEffect = await engine.effectsfactory.createBloomEffect();
 
-  // 6. Main Update Loop
   engine.onUpdate = (dt: number) => {
     if (enemyManager.isGameOver) {
       gameOverScreen.currentScore = highScore.currentScore;
-      if (input.isKeyDown("enter")) {
-        initGame();
-      }
+      if (input.isKeyDown("enter")) initGame();
       return;
     }
 
-    // Parallel update logic
     background.update(dt);
     player.update(dt);
     enemyManager.update(dt);
@@ -91,36 +82,32 @@ engine.initialize().then(async () => {
     explosionManager.update(dt);
     powerUpManager.update(dt);
     powerBoltManager.update(dt);
+    shapeManager.update(dt);
   };
 
-  // 7. Main Draw Loop
   engine.onDraw = (commandEncoder: GPUCommandEncoder) => {
-    // Prepare Post-Processing Buffers
-    engine.setDestinationTexture(postProcessEffect.sceneTexture.texture);
-    engine.setDestinationTexture2(postProcessEffect.brightnessTexture.texture);
+    // Redirect engine rendering to the bloom effect's input textures
+    engine.setDestinationTexture(bloomEffect.sceneTexture.texture);
+    engine.setDestinationTexture2(bloomEffect.brightnessTexture.texture);
 
-    // Render Game World
-    background.draw(renderer);
-    player.draw(renderer);
-    enemyManager.draw(renderer);
-    bulletManager.draw(renderer);
-    explosionManager.draw(renderer);
-    powerUpManager.draw(renderer);
-    powerBoltManager.draw(renderer);
-    highScore.draw(renderer);
+    // Draw World
+    background.draw(spriteRenderer);
+    player.draw(spriteRenderer);
+    enemyManager.draw(spriteRenderer);
+    bulletManager.draw(spriteRenderer);
+    explosionManager.draw(spriteRenderer);
+    powerUpManager.draw(spriteRenderer);
+    powerBoltManager.draw(spriteRenderer);
+    highScore.draw(spriteRenderer);
+    shapeManager.draw(engine.shapeRenderer);
 
-    // Render UI
     if (enemyManager.isGameOver) {
-      gameOverScreen.draw(renderer, width, height);
+      gameOverScreen.draw(spriteRenderer, width, height);
     }
 
-    // Final Composite to Canvas
-    postProcessEffect.draw(
-      engine.getCanvasTexture().createView(),
-      commandEncoder,
-    );
+    // Composite the scene and bloom textures back to the screen
+    bloomEffect.draw(engine.getCanvasTexture().createView(), commandEncoder);
   };
 
-  // Start Engine
   engine.draw();
 });
