@@ -1,185 +1,113 @@
-# WebGPU TypeScript Shooting Game 🎮🚀
+# 🌌 StarShatter: WebGPU TypeScript Engine
 
-A **2D shooting game built with WebGPU and TypeScript**, featuring custom rendering pipelines, sprite-based animations, sound effects, enemy management, collision detection, and real-time gameplay logic. This project is focused on **low-level graphics programming** using the modern WebGPU API.
+![License](https://img.shields.io/badge/license-MIT-green)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![WebGPU](https://img.shields.io/badge/WebGPU-Next--Gen-blueviolet?style=flat)](https://gpuweb.github.io/gpuweb/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)](https://vitejs.dev/)
+
+A high-performance **2D Space Shooting Game** and custom engine built from the ground up using the **WebGPU API**. This project explores modern GPU-accelerated rendering, featuring modular pipelines, WGSL shaders, and real-time game logic.
 
 ---
 
 ## ✨ Features
 
-- 🎯 Player-controlled shooting mechanics
-- 👾 Multiple enemy types (including meteor enemies)
-- 💥 Bullet, explosion & particle effects
-- 🎨 Sprite rendering & texture management
-- 🎮 Keyboard input handling
-- 🔊 Sound & background music system
-- 📊 High score tracking
-- 📐 Camera & geometry utilities
-- ⚡ GPU-accelerated rendering via WebGPU
+- **🎯 Combat System:** Fluid player movement, shooting mechanics, and multiple enemy types (including meteor hazards).
+- **🎨 Advanced Rendering:** Custom sprite and shape rendering pipelines with high-efficiency texture management.
+- **💥 Post-Processing:** Multi-pass **Bloom** and **Gaussian Blur** effects for high-fidelity visuals.
+- **📐 Physics & Collisions:** Optimized Circle and Elliptical collider systems for pixel-perfect hit detection.
+- **🔊 Audio Engine:** Integrated sound manager for background music (BGM) and spatial-feeling SFX.
+- **📊 State Management:** Real-time high-score tracking and game-over logic.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Language:** TypeScript
-- **Graphics API:** WebGPU
-- **Math Library:** gl-matrix
-- **Bundler:** Vite
-- **Runtime:** Browser (WebGPU-enabled)
+| Layer            | Technology                                |
+| :--------------- | :---------------------------------------- |
+| **Language**     | TypeScript                                |
+| **Graphics API** | WebGPU (WGSL Shaders)                     |
+| **Mathematics**  | `gl-matrix`                               |
+| **Bundler**      | Vite                                      |
+| **Environment**  | WebGPU-enabled Browser (Chrome/Edge 113+) |
 
 ---
 
 ## 📂 Project Structure
 
+The engine is architected to separate low-level GPU abstractions from high-level game entities.
+
 ```plaintext
 src/
-│   bloom-blur-effect.ts
-│   bloom-effect.ts
-│   blur-effect.ts
-│   buffer-util.ts
-│   bullet-manager.ts
-│   bullet.ts
-│   camera.ts
-│   circle-colider.ts
-│   Color.ts
-│   content.ts
-│   effects-factory.ts
-│   elliptical-collider.ts
-│   engine.ts
-│   explosion-manager.ts
-│   explosion.ts
-│   input-manager.ts
-│   main.ts
-│   music-content.ts
-│   post-process-effect.ts
-│   quad.ts
-│   rect.ts
-│   sound-manager.ts
-│   spite-pipeline.ts
-│   sprite-font.ts
-│   sprite-renderer.ts
-│   Sprite.ts
-│   texture-effect.ts
-│   texture.ts
-│
-├───game
-│       background.ts
-│       ememy-manager.ts
-│       enemy.ts
-│       game-over.ts
-│       high-score.ts
-│       meteor-enemy.ts
-│       player.ts
-│       power-bolt-manager.ts
-│       power-bolt.ts
-│       power-up-manager.ts
-│       power-up-shield.ts
-│       shield.ts
-│
-└───shaders
-        bloom-effect.wgsl
-        blur-effect.wgsl
-        post-process.wgsl
-        shader.wgsl
-        texture-effect.wgsl
-```
+├── 🎮 game/             # High-level Gameplay Logic
+│   ├── player.ts        # Player state & input
+│   ├── enemy-manager.ts # AI & spawning
+│   └── shield.ts        # Collision & power-ups
+├── 🧱 shaders/          # WGSL Graphics Shaders
+│   ├── bloom-effect.wgsl
+│   └── post-process.wgsl
+├── ⚙️ engine/           # Core Engine Components
+│   ├── sprite-renderer.ts
+│   ├── camera.ts
+│   └── sound-manager.ts
+└── 🛠️ utils/            # Helper Utilities
+    └── buffer-util.ts   # GPU Buffer & Memory helpers
+🚀 Getting Started
+Prerequisites
+Node.js (v18.0 or higher)
 
----
+A WebGPU-supported browser (Chrome, Edge, or Firefox Nightly).
 
-## 🚀 Getting Started
+Ensure WebGPU is enabled in chrome://flags if using an older version.
 
-### Prerequisites
+Installation & Run
+Clone the repository:
 
-- **Node.js** (v18 or higher recommended)
-- A **WebGPU-supported browser** (Chrome / Edge Canary)
-- Enable WebGPU flag if required:
-
-  ```
-  chrome://flags → Enable WebGPU
-  ```
-
----
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/rakibul23n28/webgpu-shooting-game.git
-
-# Navigate to project directory
+Bash
+git clone [https://github.com/rakibul23n28/webgpu-shooting-game.git](https://github.com/rakibul23n28/webgpu-shooting-game.git)
 cd webgpu-shooting-game
+Install dependencies:
 
-# Install dependencies
+Bash
 npm install
-```
+Start the development server:
 
----
-
-### Run in Development Mode
-
-```bash
+Bash
 npm run dev
-```
+Build for production:
 
-Then open:
-
-```
-http://localhost:5173
-```
-
----
-
-### Build for Production
-
-```bash
+Bash
 npm run build
-npm run preview
-```
+🧠 Learning Focus: WebGPU Internals
+This project was built to master the transition from WebGL to WebGPU, specifically focusing on:
 
----
+GPURenderPipeline: Creating modular pipelines for different material types.
 
-## 🎮 Gameplay Overview
+Bind Groups: Managing data layouts for uniform buffers and textures.
 
-- Use keyboard controls to move the player
-- Shoot bullets to destroy enemies
-- Avoid enemy collisions
-- Score increases by destroying enemies
-- Explosions and sound effects enhance feedback
+Command Encoders: Recording drawing commands for efficient execution.
 
----
+Post-Process Stack: Implementing multi-pass rendering by piping textures through blur and bloom shaders.
 
-## 🧠 Learning Focus
+🔮 Future Roadmap
+[ ] Instanced Rendering: Optimize bullet management for thousands of entities.
 
-This project was built to explore:
+[ ] Compute Shaders: Move collision detection logic from CPU to GPU.
 
-- WebGPU rendering pipelines
-- GPU buffers & shader management
-- Real-time game loops
-- Entity-component-like architecture
-- Collision detection & game physics
+[ ] Mobile Support: Virtual joystick and touch-input integration.
 
----
+[ ] Level System: Progressive difficulty and boss-fight encounters.
 
-## 🔮 Future Improvements
-
-- Power-ups & weapon upgrades
-- Mobile / gamepad support
-- Advanced particle effects
-- Boss enemies
-- UI overlays (health, ammo, pause menu)
-
----
-
-## 👨‍💻 Author
-
-**Rakibul Hasan**
+👨‍💻 Author
+Rakibul Hasan
 Student & Developer
 
+📜 License
+This project is open-source and available for learning and experimentation purposes.
+
+⭐ If you find this project helpful, please give it a star!
+
+
 ---
 
-## 📜 License
-
-This project is for **learning and experimentation purposes**. You are free to modify and extend it.
-
----
-
-⭐ If you’re interested in WebGPU or game engine internals, feel free to explore and star the project!
+**Would you like me to help you create a specific "How to Play" section with keyboard controls, or perhaps a section explaining how your Bloom shader works?**
+```

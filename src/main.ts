@@ -12,7 +12,7 @@ import { PowerBoltManager } from "./game/power-bolt-manager";
 import { GameOver } from "./game/game-over";
 import { Rect } from "./rect";
 import { Color } from "./Color";
-import { ShapeManager } from "./shape-manager";
+// import { ShapeManager } from "./shape-manager";
 
 const engine = new Engine();
 
@@ -35,7 +35,7 @@ engine.initialize().then(async () => {
   let enemyManager: EnemyManager;
   let powerUpManager: PowerUpManager;
   let powerBoltManager: PowerBoltManager;
-  let shapeManager: ShapeManager;
+  // let shapeManager: ShapeManager;
 
   const initGame = () => {
     player = new Player(input, width, height);
@@ -59,7 +59,7 @@ engine.initialize().then(async () => {
       player,
       bulletManager,
     );
-    shapeManager = new ShapeManager(width, height);
+    // shapeManager = new ShapeManager(width, height);
 
     highScore.currentScore = 0;
   };
@@ -82,7 +82,7 @@ engine.initialize().then(async () => {
     explosionManager.update(dt);
     powerUpManager.update(dt);
     powerBoltManager.update(dt);
-    shapeManager.update(dt);
+    // shapeManager.update(dt);
   };
 
   engine.onDraw = (commandEncoder: GPUCommandEncoder) => {
@@ -99,7 +99,7 @@ engine.initialize().then(async () => {
     powerUpManager.draw(spriteRenderer);
     powerBoltManager.draw(spriteRenderer);
     highScore.draw(spriteRenderer);
-    shapeManager.draw(engine.shapeRenderer);
+    // shapeManager.draw(engine.shapeRenderer);
 
     if (enemyManager.isGameOver) {
       gameOverScreen.draw(spriteRenderer, width, height);
